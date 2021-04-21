@@ -23,22 +23,6 @@ impl Default for TotpBuilder {
     }
 }
 impl TotpBuilder {
-    /// Get value of the field `step`: the update time interval in seconds.
-    pub fn get_step(&self) -> u64 {
-        self.step
-    }
-    /// Get value of the field `digit`: the length of the TOTP code.
-    pub fn get_digit(&self) -> usize {
-        self.digit
-    }
-    /// Get value of the field `t0`: the Unix timestamp of the initial counter time T0.
-    pub fn get_t0(&self) -> u64 {
-        self.t0
-    }
-    /// Get value of the field `hash_algorithm`.
-    pub fn get_hash_algorithm(&self) -> HashAlgorithm {
-        self.hash_algorithm
-    }
     /// Set a new value to the field `step`: the update time interval in seconds.
     ///
     /// If the `value` is non-zero, the update will success and return `Ok`.
@@ -122,6 +106,22 @@ impl TotpBuilder {
             hash_algorithm: self.hash_algorithm,
         }
     }
+    /// Get value of the field `step`: the update time interval in seconds.
+    pub fn get_step(&self) -> u64 {
+        self.step
+    }
+    /// Get value of the field `digit`: the length of the TOTP code.
+    pub fn get_digit(&self) -> usize {
+        self.digit
+    }
+    /// Get value of the field `t0`: the Unix timestamp of the initial counter time T0.
+    pub fn get_t0(&self) -> u64 {
+        self.t0
+    }
+    /// Get value of the field `hash_algorithm`.
+    pub fn get_hash_algorithm(&self) -> HashAlgorithm {
+        self.hash_algorithm
+    }
 }
 /// TOTP code generator
 ///
@@ -184,55 +184,6 @@ impl TotpGenerator {
     /// [RFC 6238 Section 4](https://tools.ietf.org/html/rfc6238#section-4).
     pub fn new() -> TotpBuilder {
         TotpBuilder::default()
-    }
-    /// Store or update a fixed timestamp and make this instance use that time
-    /// to generate TOTP codes.  
-    /// This method returns the previously stored timestamp.
-    ///
-    /// # Example
-    /// ```
-    /// use totp_rfc6238::TotpGenerator;
-    /// let mut totp_generator = TotpGenerator::new().set_digit(8).unwrap().build();
-    /// let key = b"12345678901234567890";
-    ///
-    /// assert_eq!(totp_generator.freeze_time(59), None);
-    ///
-    /// let output1 = totp_generator.get_code(key);
-    /// assert_eq!(output1.as_str(), "94287082");
-    ///
-    /// assert_eq!(totp_generator.release_time(), Some(59));
-    ///
-    /// let output2 = totp_generator.get_code(key);
-    /// assert_ne!(output1.as_str(), output2.as_str());
-    /// ```
-    pub fn freeze_time(&mut self, timestamp: u64) -> Option<u64> {
-        let old = self.current;
-        self.current = Some(timestamp);
-        old
-    }
-    /// Remove the stored timestamp. This is the opposite of the
-    /// [`TotpGenerator::freeze_time`] method.  
-    /// When [`TotpGenerator::get_code`] or [`TotpGenerator::get_code_window`]
-    /// are called, the system time at that moment will be used.  
-    /// This method returns the previously stored timestamp.
-    pub fn release_time(&mut self) -> Option<u64> {
-        self.current.take()
-    }
-    /// Get the previously stored timestamp (but do not remove it).  
-    /// This returns `None` if no timestamp is stored.
-    pub fn get_frozen_time(&self) -> Option<u64> {
-        self.current
-    }
-    /// Get the next timestamp when the TOTP code will be updated.  
-    /// This returns `None` if timestamp goes over the maximum of 64-bit
-    /// unsigned integer.
-    pub fn get_next_update_time(&self) -> Option<u64> {
-        let this_time = Self::get_target_time(self.current);
-        let this_count = time_based_counter_number(this_time, self.t0, self.step);
-        this_count
-            .checked_add(1)
-            .and_then(|x| x.checked_mul(self.step))
-            .and_then(|x| x.checked_add(self.t0))
     }
     /// Generate the TOTP code using the given key bytes.
     pub fn get_code(&self, key: &[u8]) -> String {
@@ -309,6 +260,71 @@ impl TotpGenerator {
         } else {
             Some(output)
         }
+    }
+    /// Get the next timestamp when the TOTP code will be updated.  
+    /// This returns `None` if timestamp goes over the maximum of 64-bit
+    /// unsigned integer.
+    pub fn get_next_update_time(&self) -> Option<u64> {
+        let this_time = Self::get_target_time(self.current);
+        let this_count = time_based_counter_number(this_time, self.t0, self.step);
+        this_count
+            .checked_add(1)
+            .and_then(|x| x.checked_mul(self.step))
+            .and_then(|x| x.checked_add(self.t0))
+    }
+    /// Store or update a fixed timestamp and make this instance use that time
+    /// to generate TOTP codes.  
+    /// This method returns the previously stored timestamp.
+    ///
+    /// # Example
+    /// ```
+    /// use totp_rfc6238::TotpGenerator;
+    /// let mut totp_generator = TotpGenerator::new().set_digit(8).unwrap().build();
+    /// let key = b"12345678901234567890";
+    ///
+    /// assert_eq!(totp_generator.freeze_time(59), None);
+    ///
+    /// let output1 = totp_generator.get_code(key);
+    /// assert_eq!(output1.as_str(), "94287082");
+    ///
+    /// assert_eq!(totp_generator.release_time(), Some(59));
+    ///
+    /// let output2 = totp_generator.get_code(key);
+    /// assert_ne!(output1.as_str(), output2.as_str());
+    /// ```
+    pub fn freeze_time(&mut self, timestamp: u64) -> Option<u64> {
+        let old = self.current;
+        self.current = Some(timestamp);
+        old
+    }
+    /// Remove the stored timestamp. This is the opposite of the
+    /// [`TotpGenerator::freeze_time`] method.  
+    /// When [`TotpGenerator::get_code`] or [`TotpGenerator::get_code_window`]
+    /// are called, the system time at that moment will be used.  
+    /// This method returns the previously stored timestamp.
+    pub fn release_time(&mut self) -> Option<u64> {
+        self.current.take()
+    }
+    /// Get the previously stored timestamp (but do not remove it).  
+    /// This returns `None` if no timestamp is stored.
+    pub fn get_frozen_time(&self) -> Option<u64> {
+        self.current
+    }
+    /// Get value of the field `step`: the update time interval in seconds.
+    pub fn get_step(&self) -> u64 {
+        self.step
+    }
+    /// Get value of the field `digit`: the length of the TOTP code.
+    pub fn get_digit(&self) -> usize {
+        self.digit
+    }
+    /// Get value of the field `t0`: the Unix timestamp of the initial counter time T0.
+    pub fn get_t0(&self) -> u64 {
+        self.t0
+    }
+    /// Get value of the field `hash_algorithm`.
+    pub fn get_hash_algorithm(&self) -> HashAlgorithm {
+        self.hash_algorithm
     }
     #[inline(always)]
     fn get_target_time(time: Option<u64>) -> u64 {

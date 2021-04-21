@@ -40,6 +40,45 @@ impl<T: AsRef<str>> From<T> for HashAlgorithm {
         }
     }
 }
+
+/// The counter as a time factor for TOTP defined in [RFC 6238 Section 4].
+///
+/// Arguments:  
+/// In this function, 64-bit unsigned integer (u64) is used to store the Unix
+/// timestamp.
+/// * `current`: Unix timestamp of the current time.
+/// * `t0`: Unix timestamp of the initial counter time T0 (default value in
+/// [RFC 6238 Section 4] is `0`).
+/// * `step`: The time step in seconds (default value in [RFC 6238 Section 4]
+/// is `30`).
+///
+/// Return:
+/// * an array of 8 bytes contains the counter value, which represents the
+/// number of time steps between the initial counter time T0 and the current
+/// Unix time.
+///
+/// # Panics
+/// Panics if `current` is less than `t0` or `step` is zero.
+///
+/// # Example
+/// ```
+/// use totp_rfc6238::low_level::time_based_counter_bytes;
+///
+/// // 59 is the Unix timestamp of "1970-01-01 00:00:59 UTC"
+/// let output = time_based_counter_bytes(59, 0, 30);
+///
+/// assert_eq!(output, 1_u64.to_be_bytes());
+/// ```
+/// [RFC 6238 Section 4]:https://tools.ietf.org/html/rfc6238#section-4
+#[inline(always)]
+pub fn time_based_counter_bytes(current: u64, t0: u64, step: u64) -> [u8; 8] {
+    time_based_counter_number(current, t0, step).to_be_bytes()
+}
+#[inline(always)]
+pub(crate) fn time_based_counter_number(current: u64, t0: u64, step: u64) -> u64 {
+    assert!(current >= t0);
+    (current - t0) / step
+}
 /// Compute the HMAC bytes for given bytes.
 ///
 /// Arguments:
@@ -173,44 +212,6 @@ pub fn truncate_to_string(code: usize, digit: usize) -> String {
 pub fn truncate(hmac_result: &[u8], digit: usize) -> String {
     assert_ne!(digit, 0);
     truncate_to_string(truncate_usize(hmac_result, digit), digit)
-}
-/// The counter as a time factor for TOTP defined in [RFC 6238 Section 4].
-///
-/// Arguments:  
-/// In this function, 64-bit unsigned integer (u64) is used to store the Unix
-/// timestamp.
-/// * `current`: Unix timestamp of the current time.
-/// * `t0`: Unix timestamp of the initial counter time T0 (default value in
-/// [RFC 6238 Section 4] is `0`).
-/// * `step`: The time step in seconds (default value in [RFC 6238 Section 4]
-/// is `30`).
-///
-/// Return:
-/// * an array of 8 bytes contains the counter value, which represents the
-/// number of time steps between the initial counter time T0 and the current
-/// Unix time.
-///
-/// # Panics
-/// Panics if `current` is less than `t0` or `step` is zero.
-///
-/// # Example
-/// ```
-/// use totp_rfc6238::low_level::time_based_counter_bytes;
-///
-/// // 59 is the Unix timestamp of "1970-01-01 00:00:59 UTC"
-/// let output = time_based_counter_bytes(59, 0, 30);
-///
-/// assert_eq!(output, 1_u64.to_be_bytes());
-/// ```
-/// [RFC 6238 Section 4]:https://tools.ietf.org/html/rfc6238#section-4
-#[inline(always)]
-pub fn time_based_counter_bytes(current: u64, t0: u64, step: u64) -> [u8; 8] {
-    time_based_counter_number(current, t0, step).to_be_bytes()
-}
-#[inline(always)]
-pub(crate) fn time_based_counter_number(current: u64, t0: u64, step: u64) -> u64 {
-    assert!(current >= t0);
-    (current - t0) / step
 }
 
 #[cfg(test)]
