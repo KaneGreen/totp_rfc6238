@@ -58,7 +58,8 @@ impl TotpBuilder {
     /// success and return `Ok`. Otherwise, the update will fail then return
     /// `Err`.  
     /// This is because a 31-bit unsigned integer has a maximum of 10 decimal
-    /// digits.
+    /// digits. In [RFC 4226 Section 5.3](https://tools.ietf.org/html/rfc4226#section-5.3),
+    /// the recommended values are 6 ~ 8. But here we give you more choices.
     ///
     /// # Example
     /// ```
