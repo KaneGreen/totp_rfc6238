@@ -32,11 +32,20 @@ pub enum HashAlgorithm {
 impl<T: AsRef<str>> From<T> for HashAlgorithm {
     fn from(x: T) -> Self {
         let t: &str = x.as_ref();
-        match t.to_ascii_lowercase().as_ref() {
-            "sha1" | "sha-1" => HashAlgorithm::SHA1,
-            "sha256" | "sha-256" => HashAlgorithm::SHA256,
-            "sha512" | "sha-512" => HashAlgorithm::SHA512,
+        match t.to_ascii_uppercase().as_ref() {
+            "SHA1" | "SHA-1" => HashAlgorithm::SHA1,
+            "SHA256" | "SHA-256" => HashAlgorithm::SHA256,
+            "SHA512" | "SHA-512" => HashAlgorithm::SHA512,
             _ => panic!("{} is not a acceptable hash algorithm", t),
+        }
+    }
+}
+impl HashAlgorithm {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            HashAlgorithm::SHA1 => "SHA1",
+            HashAlgorithm::SHA256 => "SHA256",
+            HashAlgorithm::SHA512 => "SHA512",
         }
     }
 }

@@ -17,7 +17,7 @@ features = [ "oathuri" ]
 
 [features]
 default = []
-oathuri = [ "data-encoding", "url", "percent-encoding" ]
+oathuri = [ "data-encoding", "percent-encoding", "url", "zeroize" ]
 
 [dependencies]
 ring = '0.16'

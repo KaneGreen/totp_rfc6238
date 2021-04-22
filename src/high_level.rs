@@ -1,5 +1,5 @@
 //! High-level APIs for TOTP code generation.
-use super::low_level::{
+use crate::low_level::{
     hmac_sha, time_based_counter_bytes, time_based_counter_number, truncate, HashAlgorithm,
 };
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -108,18 +108,22 @@ impl TotpBuilder {
         }
     }
     /// Get value of the field `step`: the update time interval in seconds.
+    #[inline(always)]
     pub fn get_step(&self) -> u64 {
         self.step
     }
     /// Get value of the field `digit`: the length of the TOTP code.
+    #[inline(always)]
     pub fn get_digit(&self) -> usize {
         self.digit
     }
     /// Get value of the field `t0`: the Unix timestamp of the initial counter time T0.
+    #[inline(always)]
     pub fn get_t0(&self) -> u64 {
         self.t0
     }
     /// Get value of the field `hash_algorithm`.
+    #[inline(always)]
     pub fn get_hash_algorithm(&self) -> HashAlgorithm {
         self.hash_algorithm
     }
@@ -132,7 +136,7 @@ impl TotpBuilder {
 /// let key = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890+/";
 /// // Create a non-standard TOTP code generator: 8-digit, updating every 60
 /// // seconds, starting at "Jan 01 1970 00:16:40 UTC", using HMAC-SHA512.
-/// let mut totp_generator = TotpGenerator::new()
+/// let totp_generator = TotpGenerator::new()
 ///     .set_digit(8).unwrap()
 ///     .set_step(60).unwrap()
 ///     .set_t0(1000)
@@ -308,22 +312,27 @@ impl TotpGenerator {
     }
     /// Get the previously stored timestamp (but do not remove it).  
     /// This returns `None` if no timestamp is stored.
+    #[inline(always)]
     pub fn get_frozen_time(&self) -> Option<u64> {
         self.current
     }
     /// Get value of the field `step`: the update time interval in seconds.
+    #[inline(always)]
     pub fn get_step(&self) -> u64 {
         self.step
     }
     /// Get value of the field `digit`: the length of the TOTP code.
+    #[inline(always)]
     pub fn get_digit(&self) -> usize {
         self.digit
     }
     /// Get value of the field `t0`: the Unix timestamp of the initial counter time T0.
+    #[inline(always)]
     pub fn get_t0(&self) -> u64 {
         self.t0
     }
     /// Get value of the field `hash_algorithm`.
+    #[inline(always)]
     pub fn get_hash_algorithm(&self) -> HashAlgorithm {
         self.hash_algorithm
     }
