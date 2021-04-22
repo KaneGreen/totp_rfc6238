@@ -19,6 +19,8 @@
 //! * Read or write QR codes.
 pub mod high_level;
 pub mod low_level;
+#[cfg(feature = "oathuri")]
+pub mod oath_uri;
 
 pub use high_level::TotpGenerator;
 pub use low_level::HashAlgorithm;
