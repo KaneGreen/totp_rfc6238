@@ -78,8 +78,8 @@ pub fn key_from_base32(mut encoded: String) -> Result<Vec<u8>, OathUriError> {
 /// let expected = "GEZDGNBVGY3TQOJQEBAWEQYKMRSUM";
 ///
 /// let input = [
-///     b'1', b'2', b'3', b'4', b'5', b'6', b'7', b'8', b'9', b'0', b' ', b'A', b'b', b'C', b'\n',
-///     b'd', b'e', b'F',
+///     b'1', b'2', b'3', b'4', b'5', b'6', b'7', b'8', b'9', b'0',
+///     b' ', b'A', b'b', b'C', b'\n', b'd', b'e', b'F',
 /// ];
 /// let output = key_to_base32_uppercase(input);
 /// assert_eq!(&output[..], expected);
@@ -97,8 +97,8 @@ pub fn key_to_base32_uppercase<T: AsRef<[u8]> + Zeroize>(mut key: T) -> String {
 /// let expected = "gezdgnbvgy3tqojqebaweqykmrsum";
 ///
 /// let input = [
-///     b'1', b'2', b'3', b'4', b'5', b'6', b'7', b'8', b'9', b'0', b' ', b'A', b'b', b'C', b'\n',
-///     b'd', b'e', b'F',
+///     b'1', b'2', b'3', b'4', b'5', b'6', b'7', b'8', b'9', b'0',
+///     b' ', b'A', b'b', b'C', b'\n', b'd', b'e', b'F',
 /// ];
 /// let output = key_to_base32_lowercase(input);
 /// assert_eq!(&output[..], expected);
@@ -262,9 +262,10 @@ impl TotpUri {
     /// use totp_rfc6238::HashAlgorithm;
     ///
     /// let expected = "otpauth://totp/Example:no-reply@example.com?secret=IFBEGRCFIZDUQSKKGAYTEMZUGU3DOOBZ&issuer=Example&algorithm=SHA512&digits=8&period=60";
+    ///
     /// let key = vec![
-    ///     b'A', b'B', b'C', b'D', b'E', b'F', b'G', b'H', b'I', b'J', b'0', b'1', b'2', b'3',
-    ///     b'4', b'5', b'6', b'7', b'8', b'9',
+    ///     b'A', b'B', b'C', b'D', b'E', b'F', b'G', b'H', b'I', b'J',
+    ///     b'0', b'1', b'2', b'3', b'4', b'5', b'6', b'7', b'8', b'9',
     /// ];
     /// // Create a non-standard TOTP code generator: 8-digit, updating every 60
     /// // seconds, starting at "Jan 01 1970 00:16:40 UTC", using HMAC-SHA512.
