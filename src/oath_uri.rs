@@ -298,8 +298,10 @@ impl TotpUri {
 
         let default = TotpGenerator::new();
         uri.query_pairs_mut().clear();
+        let mut encoded_secret = BASE32_NOPAD.encode(&self.secret);
         uri.query_pairs_mut()
-            .append_pair("secret", BASE32_NOPAD.encode(&self.secret).as_str());
+            .append_pair("secret", encoded_secret.as_str());
+        encoded_secret.zeroize();
         uri.query_pairs_mut().append_pair("issuer", &self.issuer);
         if default.get_hash_algorithm() != self.algorithm {
             uri.query_pairs_mut()
