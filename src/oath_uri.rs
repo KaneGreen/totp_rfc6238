@@ -18,8 +18,27 @@ use std::mem;
 use url::{ParseError, Url};
 use zeroize::Zeroize;
 
-/// https://url.spec.whatwg.org/#fragment-percent-encode-set
-const FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'<').add(b'>').add(b'`');
+/// https://url.spec.whatwg.org/#path-percent-encode-set
+const USERINFO: &AsciiSet = &CONTROLS
+    .add(b' ')
+    .add(b'"')
+    .add(b'#')
+    .add(b'<')
+    .add(b'>')
+    .add(b'?')
+    .add(b'`')
+    .add(b'{')
+    .add(b'}')
+    .add(b'/')
+    .add(b':')
+    .add(b';')
+    .add(b'=')
+    .add(b'@')
+    .add(b'[')
+    .add(b'\\')
+    .add(b']')
+    .add(b'^')
+    .add(b'|');
 
 pub enum OathUriError {
     Base32Error(DecodeError),
@@ -291,27 +310,32 @@ impl TotpUri {
         // uri.set_host(Some("totp")).unwrap();
         let path = format!(
             "{}:{}",
-            utf8_percent_encode(&self.issuer, FRAGMENT).to_string(),
-            utf8_percent_encode(&self.account, FRAGMENT).to_string(),
+            utf8_percent_encode(&self.issuer, USERINFO).to_string(),
+            utf8_percent_encode(&self.account, USERINFO).to_string(),
         );
         uri.set_path(&path);
 
-        let default = TotpGenerator::new();
         uri.query_pairs_mut().clear();
-        let mut encoded_secret = BASE32_NOPAD.encode(&self.secret);
-        uri.query_pairs_mut()
-            .append_pair("secret", encoded_secret.as_str());
-        encoded_secret.zeroize();
+
+        {
+            let mut encoded_secret = BASE32_NOPAD.encode(&self.secret);
+            uri.query_pairs_mut()
+                .append_pair("secret", encoded_secret.as_str());
+            encoded_secret.zeroize();
+        }
+
         uri.query_pairs_mut().append_pair("issuer", &self.issuer);
-        if default.get_hash_algorithm() != self.algorithm {
+
+        let default = TotpGenerator::new();
+        if self.algorithm != default.get_hash_algorithm() {
             uri.query_pairs_mut()
                 .append_pair("algorithm", self.algorithm.as_str());
         }
-        if default.get_digit() != self.digits {
+        if self.digits != default.get_digit() {
             uri.query_pairs_mut()
                 .append_pair("digits", &self.digits.to_string());
         }
-        if default.get_step() != self.period {
+        if self.period != default.get_step() {
             uri.query_pairs_mut()
                 .append_pair("period", &self.period.to_string());
         }
