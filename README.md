@@ -8,7 +8,7 @@ interval (period) and hash algorithm are configurable.
 * HMAC algorithms are implemented by [ring](https://crates.io/crates/ring).
 
 ## Example
-```Rust
+```
 use totp_rfc6238::{HashAlgorithm, TotpGenerator};
 let key = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890+/";
 // Create a non-standard TOTP code generator: 8-digit, updating every 60

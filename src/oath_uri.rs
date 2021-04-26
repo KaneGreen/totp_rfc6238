@@ -1,5 +1,13 @@
 //! Read or write URIs start with `otpauth://totp/`.
 //!
+//! The functions and methods in this module will automatically try to
+//! overwrite the key-related memory areas that are no longer used with zeros
+//! before being released. But this operation is only a best effort. There is
+//! no guarantee that any memory area that may have touched the key byte is
+//! safely cleared. Because some other crates called in this process may not
+//! consider this aspect. It may also be our negligence in writing code. If you
+//! have suggestions for improvement, welcome to open a [Pull Request](https://github.com/KaneGreen/totp_rfc6238/pulls).
+//!
 //! # Note
 //! This URI format is refering to
 //! [https://github.com/google/google-authenticator/wiki/Key-Uri-Format](https://github.com/google/google-authenticator/wiki/Key-Uri-Format)
@@ -40,10 +48,12 @@ const USERINFO: &AsciiSet = &CONTROLS
     .add(b'^')
     .add(b'|');
 
+/// Types of errors that may occur.
+#[derive(Debug)]
 pub enum OathUriError {
     Base32Error(DecodeError),
     UrlError(ParseError),
-    IntegerError(std::num::ParseIntError),
+    IntegerError(core::num::ParseIntError),
     EncodingError(core::str::Utf8Error),
     OtpTypeError(String),
     LabelError(String),
@@ -59,8 +69,8 @@ impl From<ParseError> for OathUriError {
         OathUriError::UrlError(x)
     }
 }
-impl From<std::num::ParseIntError> for OathUriError {
-    fn from(x: std::num::ParseIntError) -> Self {
+impl From<core::num::ParseIntError> for OathUriError {
+    fn from(x: core::num::ParseIntError) -> Self {
         OathUriError::IntegerError(x)
     }
 }
@@ -129,6 +139,29 @@ pub fn key_to_base32_lowercase<T: AsRef<[u8]> + Zeroize>(key: T) -> String {
     output
 }
 
+/// This struct stores the key bytes, the issuer and account name.
+///
+/// The key bytes will automatically be overwritten with zeros when the struct
+/// is dropped.
+///
+/// # Example
+/// ```
+/// use totp_rfc6238::oath_uri::KeyInfo;
+/// // Create a new KeyInfo
+/// let example_key = vec![
+///     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110_u8,
+/// ];
+/// let mut keyinfo = KeyInfo::new(example_key);
+/// keyinfo.issuer = "Example".to_string();
+/// keyinfo.account = "noreplay@example.com".to_string();
+///
+/// // Get a reference of the key
+/// let key_ref = keyinfo.borrow_key();
+/// assert_eq!(
+///     key_ref,
+///     &[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110_u8,]
+/// )
+/// ```
 pub struct KeyInfo {
     pub issuer: String,
     pub account: String,
@@ -141,9 +174,11 @@ impl Drop for KeyInfo {
     }
 }
 impl KeyInfo {
+    /// Immutably borrows the key bytes from this struct.
     pub fn borrow_key(&self) -> &[u8] {
         &self.secret
     }
+    /// Create this struct from the key bytes. The issuer and account name are empty now.
     pub fn new(key: Vec<u8>) -> Self {
         KeyInfo {
             secret: key,
@@ -152,6 +187,7 @@ impl KeyInfo {
         }
     }
 }
+///
 pub struct TotpUri {
     issuer: String,
     account: String,
@@ -280,7 +316,7 @@ impl TotpUri {
     /// use totp_rfc6238::oath_uri::{KeyInfo, TotpUri};
     /// use totp_rfc6238::HashAlgorithm;
     ///
-    /// let expected = "otpauth://totp/Example:no-reply@example.com?secret=IFBEGRCFIZDUQSKKGAYTEMZUGU3DOOBZ&issuer=Example&algorithm=SHA512&digits=8&period=60";
+    /// let expected = "otpauth://totp/Example:no-reply%40example.com?secret=IFBEGRCFIZDUQSKKGAYTEMZUGU3DOOBZ&issuer=Example&algorithm=SHA512&digits=8&period=60";
     ///
     /// let key = vec![
     ///     b'A', b'B', b'C', b'D', b'E', b'F', b'G', b'H', b'I', b'J',
