@@ -11,28 +11,30 @@ A rust crate for generating TOTP codes (tokens) defined in [RFC 6238](https://to
 * Read or write `key` from base32-encoded string (the `oathuri` feature gate).
 
 ## Example
-```
+```rust
 use totp_rfc6238::{HashAlgorithm, TotpGenerator};
-let key = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890+/";
-// Create a non-standard TOTP code generator: 8-digit, updating every 60
-// seconds, starting at "Jan 01 1970 00:16:40 UTC", using HMAC-SHA512.
-let mut totp_generator = TotpGenerator::new()
-    .set_digit(8).unwrap()
-    .set_step(60).unwrap()
-    .set_t0(1000)
-    .set_hash_algorithm(HashAlgorithm::SHA512)
-    .build();
-
-let output1 = totp_generator.get_code(key);
-println!("Your TOTP code for current time is: {}", output1);
-
-let output2 = totp_generator.get_next_update_time().unwrap();
-println!("Next update will be at the unix timestamp of {}", output2);
-
-let output3 = totp_generator.get_code_window(key, -5..=5).unwrap();
-println!("Codes for 5 minutes earlier or later are:");
-for i in output3 {
-    println!("  {}", i);
+fn main() {
+    let key = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890+/";
+    // Create a non-standard TOTP code generator: 8-digit, updating every 60
+    // seconds, starting at "Jan 01 1970 00:16:40 UTC", using HMAC-SHA512.
+    let mut totp_generator = TotpGenerator::new()
+        .set_digit(8).unwrap()
+        .set_step(60).unwrap()
+        .set_t0(1000)
+        .set_hash_algorithm(HashAlgorithm::SHA512)
+        .build();
+    
+    let output1 = totp_generator.get_code(key);
+    println!("Your TOTP code for current time is: {}", output1);
+    
+    let output2 = totp_generator.get_next_update_time().unwrap();
+    println!("Next update will be at the unix timestamp of {}", output2);
+    
+    let output3 = totp_generator.get_code_window(key, -5..=5).unwrap();
+    println!("Codes for 5 minutes earlier or later are:");
+    for i in output3 {
+        println!("  {}", i);
+    }
 }
 ```
 
