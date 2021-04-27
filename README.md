@@ -3,9 +3,12 @@ A rust crate for generating TOTP codes (tokens) defined in [RFC 6238](https://to
 
 ## Features of this crate
 * Both low-level and high-level APIs are provided.
-* The length of the codes, the initial counter time (T0), update time
-interval (period) and hash algorithm are configurable.
+* The length of the codes, the initial counter time (T0), update time interval
+(period) and hash algorithm are configurable.
 * HMAC algorithms are implemented by [ring](https://crates.io/crates/ring).
+* Read or write "[Key Uri Format](https://github.com/google/google-authenticator/wiki/Key-Uri-Format)"
+(URIs start with `otpauth://totp/`) (the `oathuri` feature gate).
+* Read or write `key` from base32-encoded string (the `oathuri` feature gate).
 
 ## Example
 ```
@@ -37,11 +40,6 @@ for i in output3 {
 The codes of this crate has not been audited.
 
 ## Features that may be related to but NOT implemented in this crate
-* Read or write "[Key Uri Format](https://github.com/google/google-authenticator/wiki/Key-Uri-Format)"
-(URIs start with `otpauth://totp/`).
-* Read or write `key` from base32-encoded string. (But the crate
-[data-encoding](https://docs.rs/data-encoding/latest/data_encoding/constant.BASE32_NOPAD.html)
-may help this)
 * Read or write QR codes.
 
 ## Contribution

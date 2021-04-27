@@ -1,5 +1,7 @@
 //! Read or write URIs start with `otpauth://totp/`.
 //!
+//! This module requires `oathuri` feature gate.
+//!
 //! The functions and methods in this module will automatically try to
 //! overwrite the key-related memory areas that are no longer used with zeros
 //! before being released. But this operation is only a best effort. There is
