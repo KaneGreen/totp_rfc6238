@@ -187,7 +187,7 @@ impl KeyInfo {
         }
     }
 }
-///
+/// This struct provides reading and writing TOTP URIs.
 pub struct TotpUri {
     issuer: String,
     account: String,
@@ -205,6 +205,28 @@ impl Drop for TotpUri {
     }
 }
 impl TotpUri {
+    /// Read TOTP informations and configurations from the TOTP URIs.
+    ///
+    /// # Example
+    /// ```
+    /// use totp_rfc6238::oath_uri::TotpUri;
+    /// use totp_rfc6238::HashAlgorithm;
+    ///
+    /// let uri = String::from("otpauth://totp/Example:noreply@example.com?secret=OOP3SKVZ4AWKHS7RSSJNR3LKI5LA4GUE&issuer=Example");
+    /// let totp = TotpUri::from_uri(uri).unwrap();
+    /// let (builder, keyinfo) = totp.to_builder_and_keyinfo().unwrap();
+    ///
+    /// assert_eq!(builder.get_digit(), 6);
+    /// assert_eq!(builder.get_step(), 30);
+    /// assert_eq!(builder.get_t0(), 0);
+    /// assert_eq!(builder.get_hash_algorithm(), HashAlgorithm::SHA1);
+    /// assert_eq!(&keyinfo.issuer, "Example");
+    /// assert_eq!(&keyinfo.account, "noreply@example.com");
+    /// assert_eq!(
+    ///     keyinfo.borrow_key(),
+    ///     b"\x73\x9f\xb9\x2a\xb9\xe0\x2c\xa3\xcb\xf1\x94\x92\xd8\xed\x6a\x47\x56\x0e\x1a\x84"
+    /// );
+    /// ```
     pub fn from_uri(mut uri: String) -> Result<Self, OathUriError> {
         let parsed = Url::parse(&uri)?;
 
@@ -310,6 +332,8 @@ impl TotpUri {
         uri.zeroize();
         Ok(output)
     }
+    /// Write the infomations and configurations to the TOTOP URIs.
+    ///
     /// # Example
     /// ```
     /// use totp_rfc6238::high_level::TotpGenerator;
@@ -377,6 +401,10 @@ impl TotpUri {
         }
         uri.into_string()
     }
+    /// Create an instance of this struct From [`TotpBuilder`] and [`KeyInfo`].
+    ///
+    /// # Example
+    /// See the example of [`TotpUri::to_uri`].
     pub fn from_builder_and_keyinfo(builder: TotpBuilder, mut keyinfo: KeyInfo) -> Self {
         let mut output = TotpUri {
             issuer: String::new(),
@@ -391,6 +419,10 @@ impl TotpUri {
         mem::swap(&mut output.account, &mut keyinfo.account);
         output
     }
+    /// Convert this struct to [`TotpBuilder`] and [`KeyInfo`].
+    ///
+    /// # Example
+    /// See the example of [`TotpUri::from_uri`].
     pub fn to_builder_and_keyinfo(mut self) -> Result<(TotpBuilder, KeyInfo), OathUriError> {
         let builder = TotpGenerator::new()
             .set_hash_algorithm(self.algorithm)
