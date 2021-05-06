@@ -28,27 +28,21 @@ use std::mem;
 use url::{ParseError, Url};
 use zeroize::Zeroize;
 
-/// https://url.spec.whatwg.org/#path-percent-encode-set
-const USERINFO: &AsciiSet = &CONTROLS
+/// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
+const CHARS_NEED_ESCAPE: &AsciiSet = &CONTROLS
     .add(b' ')
     .add(b'"')
-    .add(b'#')
+    .add(b'%')
     .add(b'<')
     .add(b'>')
-    .add(b'?')
-    .add(b'`')
-    .add(b'{')
-    .add(b'}')
-    .add(b'/')
-    .add(b':')
-    .add(b';')
-    .add(b'=')
-    .add(b'@')
     .add(b'[')
     .add(b'\\')
     .add(b']')
     .add(b'^')
-    .add(b'|');
+    .add(b'`')
+    .add(b'{')
+    .add(b'|')
+    .add(b'}');
 
 /// Types of errors that may occur.
 #[derive(Debug)]
@@ -342,7 +336,7 @@ impl TotpUri {
     /// use totp_rfc6238::oath_uri::{KeyInfo, TotpUri};
     /// use totp_rfc6238::HashAlgorithm;
     ///
-    /// let expected = "otpauth://totp/Example:no-reply%40example.com?secret=IFBEGRCFIZDUQSKKGAYTEMZUGU3DOOBZ&issuer=Example&algorithm=SHA512&digits=8&period=60";
+    /// let expected = "otpauth://totp/Example:no-reply@example.com?secret=IFBEGRCFIZDUQSKKGAYTEMZUGU3DOOBZ&issuer=Example&algorithm=SHA512&digits=8&period=60";
     ///
     /// let key = vec![
     ///     b'A', b'B', b'C', b'D', b'E', b'F', b'G', b'H', b'I', b'J',
@@ -372,8 +366,8 @@ impl TotpUri {
         // uri.set_host(Some("totp")).unwrap();
         let path = format!(
             "{}:{}",
-            utf8_percent_encode(&self.issuer, USERINFO).to_string(),
-            utf8_percent_encode(&self.account, USERINFO).to_string(),
+            utf8_percent_encode(&self.issuer, CHARS_NEED_ESCAPE).to_string(),
+            utf8_percent_encode(&self.account, CHARS_NEED_ESCAPE).to_string(),
         );
         uri.set_path(&path);
 
