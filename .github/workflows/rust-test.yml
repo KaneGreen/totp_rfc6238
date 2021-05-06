@@ -14,6 +14,10 @@ on:
       - 'src/**'
       - 'Cargo.toml'
 
+defaults:
+  run:
+    shell: bash
+
 env:
   CARGO_TERM_COLOR: always
 
