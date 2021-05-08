@@ -191,6 +191,11 @@ impl TotpGenerator {
         TotpBuilder::default()
     }
     /// Generate the TOTP code using the given key bytes.
+    ///
+    /// # Panics
+    /// Panics if the current system time is earlier than the Unix epoch
+    /// (1970-01-01T00:00:00Z) and this instance of TotpGenerator is using the
+    /// system time.
     pub fn get_code(&self, key: &[u8]) -> String {
         self.get_code_with(key, || Self::get_target_time(self.current))
     }
@@ -226,6 +231,11 @@ impl TotpGenerator {
     /// let server_code = server_totp.get_code_window(shared_key, -2..=2).unwrap();
     /// assert!(server_code.iter().any(|x| x == client_code.as_str()));
     /// ```
+    ///
+    /// # Panics
+    /// Panics if the current system time is earlier than the Unix epoch
+    /// (1970-01-01T00:00:00Z) and this instance of TotpGenerator is using the
+    /// system time.
     pub fn get_code_window<T: Iterator<Item = isize>>(
         &self,
         key: &[u8],
@@ -269,6 +279,11 @@ impl TotpGenerator {
     /// Get the next timestamp when the TOTP code will be updated.  
     /// This returns `None` if timestamp goes over the maximum of 64-bit
     /// unsigned integer.
+    ///
+    /// # Panics
+    /// Panics if the current system time is earlier than the Unix epoch
+    /// (1970-01-01T00:00:00Z) and this instance of TotpGenerator is using the
+    /// system time.
     pub fn get_next_update_time(&self) -> Option<u64> {
         let this_time = Self::get_target_time(self.current);
         let this_count = time_based_counter_number(this_time, self.t0, self.step);
@@ -336,6 +351,12 @@ impl TotpGenerator {
     pub fn get_hash_algorithm(&self) -> HashAlgorithm {
         self.hash_algorithm
     }
+    /// Get the target time of this instance of TotpGenerator.
+    ///
+    /// # Panics
+    /// Panics if the current system time is earlier than the Unix epoch
+    /// (1970-01-01T00:00:00Z) and this instance of TotpGenerator is using the
+    /// system time.
     #[inline(always)]
     fn get_target_time(time: Option<u64>) -> u64 {
         match time {

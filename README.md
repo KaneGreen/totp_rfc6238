@@ -10,6 +10,10 @@ A rust crate for generating TOTP codes (tokens) defined in [RFC 6238](https://to
 (URIs start with `otpauth://totp/`) (the `oathuri` feature gate).
 * Read or write `key` from base32-encoded string (the `oathuri` feature gate).
 
+### Note
+This implementation does **NOT** consider the time earlier than the
+[Unix epoch (`1970-01-01T00:00:00Z`)](https://en.wikipedia.org/wiki/Unix_time).
+
 ## Example
 ```rust
 use totp_rfc6238::{HashAlgorithm, TotpGenerator};

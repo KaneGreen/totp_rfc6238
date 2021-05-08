@@ -1,6 +1,11 @@
 //! Read or write URIs start with `otpauth://totp/`.
 //!
-//! This module requires `oathuri` feature gate.
+//! This module requires `oathuri` feature gate:
+//! ```toml
+//! # Cargo.toml
+//! [dependencies]
+//! totp_rfc6238 = { version = "0.3", features = [ "oathuri" ]}
+//! ```
 //!
 //! The functions and methods in this module will automatically try to
 //! overwrite the key-related memory areas that are no longer used with zeros

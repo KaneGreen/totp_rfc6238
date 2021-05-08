@@ -11,6 +11,9 @@
 //! * Read or write `key` from base32-encoded string (the `oathuri` feature
 //! gate).
 //!
+//! Note: This implementation does **NOT** consider the time earlier than the
+//! [Unix epoch (`1970-01-01T00:00:00Z`)](https://en.wikipedia.org/wiki/Unix_time).
+//!
 //! See [`high_level::TotpGenerator`] for an example.
 //!
 //! ----
