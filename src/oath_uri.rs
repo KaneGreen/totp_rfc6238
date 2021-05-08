@@ -245,7 +245,7 @@ impl TotpUri {
         let parameters = parsed.query_pairs();
         let mut map_parameters = HashMap::new();
         for (k, v) in parameters {
-            map_parameters.insert(k, v);
+            map_parameters.insert(k.to_ascii_lowercase(), v);
         }
 
         let parameter_secret = match map_parameters.get("secret") {
