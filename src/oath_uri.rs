@@ -326,7 +326,7 @@ impl TotpUri {
         uri.zeroize();
         Ok(output)
     }
-    /// Write the infomations and configurations to the TOTOP URIs.
+    /// Write the infomations and configurations to the TOTP URIs.
     ///
     /// # Example
     /// ```
