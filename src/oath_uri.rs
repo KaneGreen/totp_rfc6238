@@ -4,7 +4,7 @@
 //! ```toml
 //! # Cargo.toml
 //! [dependencies]
-//! totp_rfc6238 = { version = "0.3", features = [ "oathuri" ]}
+//! totp_rfc6238 = { version = "0.4.0", features = [ "oathuri" ]}
 //! ```
 //!
 //! The functions and methods in this module will automatically try to
@@ -56,9 +56,9 @@ pub enum OathUriError {
     UrlError(ParseError),
     IntegerError(core::num::ParseIntError),
     EncodingError(core::str::Utf8Error),
-    OtpTypeError(String),
-    LabelError(String),
-    ParameterError(String),
+    OtpTypeError(&'static str),
+    LabelError(&'static str),
+    ParameterError(&'static str),
 }
 impl From<DecodeError> for OathUriError {
     fn from(x: DecodeError) -> Self {
@@ -215,7 +215,7 @@ impl TotpUri {
     ///
     /// let uri = String::from("otpauth://totp/Example:noreply@example.com?secret=OOP3SKVZ4AWKHS7RSSJNR3LKI5LA4GUE&issuer=Example");
     /// let totp = TotpUri::from_uri(uri).unwrap();
-    /// let (builder, keyinfo) = totp.to_builder_and_keyinfo().unwrap();
+    /// let (builder, keyinfo) = totp.into_builder_and_keyinfo().unwrap();
     ///
     /// assert_eq!(builder.get_digit(), 6);
     /// assert_eq!(builder.get_step(), 30);
@@ -234,17 +234,12 @@ impl TotpUri {
         match parsed.host_str() {
             Some(otp) => {
                 if otp.to_ascii_lowercase() != "totp" {
-                    return Err(OathUriError::OtpTypeError(format!(
-                        "`{}` is not a supported OTP type",
-                        otp
-                    )));
+                    return Err(OathUriError::OtpTypeError(
+                        "Only totp is the supported OTP type",
+                    ));
                 }
             }
-            None => {
-                return Err(OathUriError::OtpTypeError(
-                    "No OTP type in given URI".to_string(),
-                ))
-            }
+            None => return Err(OathUriError::OtpTypeError("No OTP type in given URI")),
         }
 
         let parameters = parsed.query_pairs();
@@ -257,7 +252,7 @@ impl TotpUri {
             Some(x) => key_from_base32(x.to_string())?,
             None => {
                 return Err(OathUriError::ParameterError(
-                    "No `secret` parameter in given URI".to_string(),
+                    "Secret: no `secret` parameter in given URI",
                 ))
             }
         };
@@ -276,10 +271,9 @@ impl TotpUri {
                 "SHA256" | "SHA-256" => HashAlgorithm::SHA256,
                 "SHA512" | "SHA-512" => HashAlgorithm::SHA512,
                 _ => {
-                    return Err(OathUriError::ParameterError(format!(
-                        "`{}` is not a supported hash algorithm",
-                        x
-                    )))
+                    return Err(OathUriError::ParameterError(
+                        "Hash Algorithm: only SHA-1, SHA-256, SHA-512 are supported.",
+                    ))
                 }
             },
             None => HashAlgorithm::SHA1,
@@ -290,7 +284,7 @@ impl TotpUri {
         let label = percent_decode_str(parsed.path()).decode_utf8()?;
         let mut label_iter = label[1..].split(':');
         let l_first = label_iter.next().ok_or(OathUriError::LabelError(
-            "No `account` label in given URI".to_string(),
+            "Account Name: no `account` label in given URI",
         ))?;
         let label_second = label_iter.next();
 
@@ -300,8 +294,7 @@ impl TotpUri {
             (Some(p), Some(l_second)) => {
                 if p != l_first {
                     return Err(OathUriError::LabelError(
-                        "`issuer` in label and parameters are inconsistent in given URI"
-                            .to_string(),
+                        "`issuer` in label and parameters are inconsistent in given URI",
                     ));
                 }
                 real_issuer = p.to_string();
@@ -317,7 +310,7 @@ impl TotpUri {
             }
             (None, None) => {
                 return Err(OathUriError::ParameterError(
-                    "No `issuer` parameter in given URI".to_string(),
+                    "Issuer: no `issuer` parameter in given URI",
                 ))
             }
         }
@@ -362,9 +355,9 @@ impl TotpUri {
     /// keyinfo.account = "no-reply@example.com".to_string();
     ///
     /// let totpuri = TotpUri::from_builder_and_keyinfo(builder, keyinfo);
-    /// assert_eq!(&totpuri.to_uri(), expected);
+    /// assert_eq!(&totpuri.into_uri(), expected);
     /// ```
-    pub fn to_uri(self) -> String {
+    pub fn into_uri(self) -> String {
         let mut uri = Url::parse("otpauth://totp/").unwrap();
         // These two are unnecessary:
         // uri.set_scheme("otpauth").unwrap();
@@ -400,12 +393,12 @@ impl TotpUri {
             uri.query_pairs_mut()
                 .append_pair("period", &self.period.to_string());
         }
-        uri.into_string()
+        uri.into()
     }
     /// Create an instance of this struct From [`TotpBuilder`] and [`KeyInfo`].
     ///
     /// # Example
-    /// See the example of [`TotpUri::to_uri`].
+    /// See the example of [`TotpUri::into_uri`].
     pub fn from_builder_and_keyinfo(builder: TotpBuilder, mut keyinfo: KeyInfo) -> Self {
         let mut output = TotpUri {
             issuer: String::new(),
@@ -424,16 +417,16 @@ impl TotpUri {
     ///
     /// # Example
     /// See the example of [`TotpUri::from_uri`].
-    pub fn to_builder_and_keyinfo(mut self) -> Result<(TotpBuilder, KeyInfo), OathUriError> {
+    pub fn into_builder_and_keyinfo(mut self) -> Result<(TotpBuilder, KeyInfo), OathUriError> {
         let builder = TotpGenerator::new()
             .set_hash_algorithm(self.algorithm)
             .set_step(self.period)
             .or(Err(OathUriError::ParameterError(
-                "The `period` parameter in given URI is invalid".to_string(),
+                "Period: the `period` parameter in given URI is invalid",
             )))?
             .set_digit(self.digits)
             .or(Err(OathUriError::ParameterError(
-                "The `digits` parameter in given URI is invalid".to_string(),
+                "Digits: the `digits` parameter in given URI is invalid",
             )))?;
         let mut info = KeyInfo::new(Vec::new());
         mem::swap(&mut info.secret, &mut self.secret);

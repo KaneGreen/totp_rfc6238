@@ -1,4 +1,8 @@
 # Changelog
+## v0.4.0
+* **API changed**: function names of all `to_*` methods in `oath_uri::TotpUri`
+changed to `into_*`.
+* **API changed**: data type of `oath_uri::OathUriError` has changed.
 ## v0.3.1
 * Improved the documentation. No actual code changes.
 ## v0.3.0
