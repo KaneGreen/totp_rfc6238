@@ -1,4 +1,7 @@
 # Changelog
+## v0.4.1
+* The method `oath_uri::TotpUri::from_uri` now are case-insensitive to
+parameter names in URIs.
 ## v0.4.0
 * **API changed**: function names of all `to_*` methods in `oath_uri::TotpUri`
 changed to `into_*`.

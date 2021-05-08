@@ -4,7 +4,7 @@
 //! ```toml
 //! # Cargo.toml
 //! [dependencies]
-//! totp_rfc6238 = { version = "0.4.0", features = [ "oathuri" ]}
+//! totp_rfc6238 = { version = "0.4.1", features = [ "oathuri" ]}
 //! ```
 //!
 //! The functions and methods in this module will automatically try to
