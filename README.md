@@ -1,6 +1,9 @@
 # totp_rfc6238
 A rust crate for generating TOTP codes (tokens) defined in [RFC 6238](https://tools.ietf.org/html/rfc6238).
 
+[![crates.io](https://img.shields.io/crates/v/totp_rfc6238.svg)](https://crates.io/crates/totp_rfc6238)
+[![docs.rs](https://docs.rs/totp_rfc6238/badge.svg)](https://docs.rs/totp_rfc6238)
+
 ## Features of this crate
 * Both low-level and high-level APIs are provided.
 * The length of the codes, the initial counter time (T0), update time interval
@@ -41,6 +44,12 @@ fn main() {
     }
 }
 ```
+
+## Changelog
+See [here](./CHANGELOG.md).
+### Incompatible API breaking changes
+* v0.3.1 -> v0.4.0
+* v0.2.0 -> v0.3.0
 
 ## Warning
 The codes of this crate has not been audited.

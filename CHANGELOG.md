@@ -1,4 +1,6 @@
 # Changelog
+## v0.4.2
+* Improved the documentation. No actual code changes.
 ## v0.4.1
 * The method `oath_uri::TotpUri::from_uri` now are case-insensitive to
 parameter names in URIs.

@@ -1,5 +1,5 @@
-//! This library is for generating TOTP codes (tokens), which is defined in
-//! [RFC 6238](https://tools.ietf.org/html/rfc6238).
+//! This library is for generating Time-based One-time Password (TOTP)
+//! codes/tokens, which is defined in [RFC 6238](https://tools.ietf.org/html/rfc6238).
 //!
 //! Features of this crate:
 //! * Both low-level and high-level APIs are provided.
@@ -21,6 +21,7 @@
 //! * Read or write QR codes.
 pub mod high_level;
 pub mod low_level;
+
 #[cfg(feature = "oathuri")]
 pub mod oath_uri;
 
