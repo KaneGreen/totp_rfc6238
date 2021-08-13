@@ -3,6 +3,7 @@ A rust crate for generating TOTP codes (tokens) defined in [RFC 6238](https://to
 
 [![crates.io](https://img.shields.io/crates/v/totp_rfc6238.svg)](https://crates.io/crates/totp_rfc6238)
 [![docs.rs](https://docs.rs/totp_rfc6238/badge.svg)](https://docs.rs/totp_rfc6238)
+[![Rust-test](https://github.com/KaneGreen/totp_rfc6238/actions/workflows/rust-test.yml/badge.svg?branch=master&event=push)](https://github.com/KaneGreen/totp_rfc6238/actions/workflows/rust-test.yml)
 
 ## Features of this crate
 * Both low-level and high-level APIs are provided.
@@ -48,8 +49,15 @@ fn main() {
 ## Changelog
 See [here](./CHANGELOG.md).
 ### Incompatible API breaking changes
-* v0.3.1 -> v0.4.0
-* v0.2.0 -> v0.3.0
+The version number lower than `1.0.0` should be regarded as an unstable version
+of the API. Therefore, some version updates may contain incompatible API
+changes. Please refer to the following when changing the dependent version.
+* v0.4.2 -> v0.5.0: The data types of errors has changed. (only affects the
+`oathuri` feature)
+* v0.3.1 -> v0.4.0: The data types of errors and function names has changed.
+(only affects the `oathuri` feature)
+* v0.2.0 -> v0.3.0: In the percent-encoding, the characters that need to be
+escaped have changed. (only affects the `oathuri` feature)
 
 ## Warning
 The codes of this crate has not been audited.

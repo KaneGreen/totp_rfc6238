@@ -1,4 +1,6 @@
 # Changelog
+## v0.5.0
+* **API changed**: Improved error handling.
 ## v0.4.2
 * Improved the documentation. No actual code changes.
 ## v0.4.1

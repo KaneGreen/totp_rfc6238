@@ -29,6 +29,8 @@ use crate::low_level::HashAlgorithm;
 use data_encoding::{DecodeError, BASE32_NOPAD};
 use percent_encoding::{percent_decode_str, utf8_percent_encode, AsciiSet, CONTROLS};
 use std::collections::HashMap;
+use std::error;
+use std::fmt::{self, Display};
 use std::mem;
 use url::{ParseError, Url};
 use zeroize::Zeroize;
@@ -52,13 +54,69 @@ const CHARS_NEED_ESCAPE: &AsciiSet = &CONTROLS
 /// Types of errors that may occur.
 #[derive(Debug)]
 pub enum OathUriError {
+    /// Errors that can occur during decoding base32. (from the `data_encoding` crate)
     Base32Error(DecodeError),
+    /// Errors that can occur during parsing URL. (from the `url` crate)
     UrlError(ParseError),
-    IntegerError(core::num::ParseIntError),
-    EncodingError(core::str::Utf8Error),
-    OtpTypeError(&'static str),
-    LabelError(&'static str),
-    ParameterError(&'static str),
+    /// An error which can be returned when parsing an integer. (from Rust std)
+    IntegerError(::core::num::ParseIntError),
+    /// Errors which can occur when attempting to interpret a sequence of `u8` as a string. (from Rust std)
+    EncodingError(::core::str::Utf8Error),
+    /// An error indicates that the URI does not contain an accepted OTP type.
+    OtpTypeError(ErrorInfo),
+    /// An error indicates that the URI contains an incorrect label.
+    LabelError(ErrorInfo),
+    /// An error indicates that the URI contains an incorrect parameter.
+    ParameterError(ErrorInfo),
+}
+impl Display for OathUriError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        let text = match self {
+            OathUriError::Base32Error(err) => {
+                format!("Error during decoding base32 of the URI: {}", err)
+            }
+            OathUriError::UrlError(err) => {
+                format!("Error during parsing the URI: {}", err)
+            }
+            OathUriError::IntegerError(err) => {
+                format!("Error during parsing the integer: {}", err)
+            }
+            OathUriError::EncodingError(err) => {
+                format!(
+                    "Error during decoding percent-encoded labels as UTF-8: {}",
+                    err
+                )
+            }
+            OathUriError::OtpTypeError(err) => {
+                let mut tmp = format!("Error during parsing the OTP type: {}", err.err_info);
+                if let Some(x) = err.value() {
+                    tmp.push_str(", but `");
+                    tmp.push_str(x);
+                    tmp.push_str("` is provided");
+                }
+                tmp
+            }
+            OathUriError::LabelError(err) => {
+                format!(
+                    "Error during parsing label `{}`: {}",
+                    err.err_field, err.err_info
+                )
+            }
+            OathUriError::ParameterError(err) => {
+                let mut tmp = format!(
+                    "Error during parsing parameter `{}`: {}",
+                    err.err_field, err.err_info
+                );
+                if let Some(x) = err.value() {
+                    tmp.push_str(", the provided value is `");
+                    tmp.push_str(x);
+                    tmp.push('`');
+                }
+                tmp
+            }
+        };
+        write!(f, "{}", text)
+    }
 }
 impl From<DecodeError> for OathUriError {
     fn from(x: DecodeError) -> Self {
@@ -70,16 +128,56 @@ impl From<ParseError> for OathUriError {
         OathUriError::UrlError(x)
     }
 }
-impl From<core::num::ParseIntError> for OathUriError {
-    fn from(x: core::num::ParseIntError) -> Self {
+impl From<::core::num::ParseIntError> for OathUriError {
+    fn from(x: ::core::num::ParseIntError) -> Self {
         OathUriError::IntegerError(x)
     }
 }
-impl From<core::str::Utf8Error> for OathUriError {
-    fn from(x: core::str::Utf8Error) -> Self {
+impl From<::core::str::Utf8Error> for OathUriError {
+    fn from(x: ::core::str::Utf8Error) -> Self {
         OathUriError::EncodingError(x)
     }
 }
+impl error::Error for OathUriError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            OathUriError::Base32Error(err) => Some(err),
+            OathUriError::UrlError(err) => Some(err),
+            OathUriError::IntegerError(err) => Some(err),
+            OathUriError::EncodingError(err) => Some(err),
+            _ => None,
+        }
+    }
+}
+/// Infomation about the errors.
+#[derive(Debug)]
+pub struct ErrorInfo {
+    err_value: Option<String>,
+    err_field: &'static str,
+    err_info: &'static str,
+}
+impl ErrorInfo {
+    fn new(value: Option<String>, field: &'static str, info: &'static str) -> Self {
+        ErrorInfo {
+            err_value: value,
+            err_field: field,
+            err_info: info,
+        }
+    }
+    /// Get the value that caused the error.
+    pub fn value(&self) -> Option<&String> {
+        self.err_value.as_ref()
+    }
+    /// Get the field name in the URI corresponding to the error.
+    pub fn field(&self) -> &'static str {
+        self.err_field
+    }
+    /// Get human readable information.
+    pub fn info(&self) -> &'static str {
+        self.err_info
+    }
+}
+
 /// Read key bytes from a base32-encoded String.
 ///
 /// # Example
@@ -234,12 +332,20 @@ impl TotpUri {
         match parsed.host_str() {
             Some(otp) => {
                 if otp.to_ascii_lowercase() != "totp" {
-                    return Err(OathUriError::OtpTypeError(
-                        "Only totp is the supported OTP type",
-                    ));
+                    return Err(OathUriError::OtpTypeError(ErrorInfo::new(
+                        Some(otp.to_owned()),
+                        "type",
+                        "Only `totp` is the supported OTP type in this crate",
+                    )));
                 }
             }
-            None => return Err(OathUriError::OtpTypeError("No OTP type in given URI")),
+            None => {
+                return Err(OathUriError::OtpTypeError(ErrorInfo::new(
+                    None,
+                    "type",
+                    "No OTP type in given URI",
+                )))
+            }
         }
 
         let parameters = parsed.query_pairs();
@@ -251,9 +357,11 @@ impl TotpUri {
         let parameter_secret = match map_parameters.get("secret") {
             Some(x) => key_from_base32(x.to_string())?,
             None => {
-                return Err(OathUriError::ParameterError(
-                    "Secret: no `secret` parameter in given URI",
-                ))
+                return Err(OathUriError::ParameterError(ErrorInfo::new(
+                    None,
+                    "secret",
+                    "No `secret` parameter in given URI",
+                )))
             }
         };
 
@@ -271,9 +379,11 @@ impl TotpUri {
                 "SHA256" | "SHA-256" => HashAlgorithm::SHA256,
                 "SHA512" | "SHA-512" => HashAlgorithm::SHA512,
                 _ => {
-                    return Err(OathUriError::ParameterError(
-                        "Hash Algorithm: only SHA-1, SHA-256, SHA-512 are supported.",
-                    ))
+                    return Err(OathUriError::ParameterError(ErrorInfo::new(
+                        Some(x.to_string()),
+                        "algorithm",
+                        "Only SHA-1, SHA-256, SHA-512 are supported",
+                    )))
                 }
             },
             None => HashAlgorithm::SHA1,
@@ -283,9 +393,13 @@ impl TotpUri {
 
         let label = percent_decode_str(parsed.path()).decode_utf8()?;
         let mut label_iter = label[1..].split(':');
-        let l_first = label_iter.next().ok_or(OathUriError::LabelError(
-            "Account Name: no `account` label in given URI",
-        ))?;
+        let l_first = label_iter
+            .next()
+            .ok_or(OathUriError::LabelError(ErrorInfo::new(
+                None,
+                "account",
+                "No `account` label in given URI",
+            )))?;
         let label_second = label_iter.next();
 
         let real_issuer;
@@ -293,9 +407,11 @@ impl TotpUri {
         match (parameter_issuer, label_second) {
             (Some(p), Some(l_second)) => {
                 if p != l_first {
-                    return Err(OathUriError::LabelError(
-                        "`issuer` in label and parameters are inconsistent in given URI",
-                    ));
+                    return Err(OathUriError::LabelError(ErrorInfo::new(
+                        Some(p.to_string()),
+                        "issuer",
+                        "The `issuer` in label and parameters are inconsistent in given URI",
+                    )));
                 }
                 real_issuer = p.to_string();
                 real_account = l_second.to_string();
@@ -309,9 +425,11 @@ impl TotpUri {
                 real_account = l_second.to_string();
             }
             (None, None) => {
-                return Err(OathUriError::ParameterError(
-                    "Issuer: no `issuer` parameter in given URI",
-                ))
+                return Err(OathUriError::ParameterError(ErrorInfo::new(
+                    None,
+                    "issuer",
+                    "No `issuer` parameter in given URI",
+                )))
             }
         }
 
@@ -421,13 +539,17 @@ impl TotpUri {
         let builder = TotpGenerator::new()
             .set_hash_algorithm(self.algorithm)
             .set_step(self.period)
-            .or(Err(OathUriError::ParameterError(
-                "Period: the `period` parameter in given URI is invalid",
-            )))?
+            .or(Err(OathUriError::ParameterError(ErrorInfo::new(
+                Some(self.period.to_string()),
+                "period",
+                "The `period` parameter in given URI is invalid",
+            ))))?
             .set_digit(self.digits)
-            .or(Err(OathUriError::ParameterError(
-                "Digits: the `digits` parameter in given URI is invalid",
-            )))?;
+            .or(Err(OathUriError::ParameterError(ErrorInfo::new(
+                Some(self.digits.to_string()),
+                "digits",
+                "The `digits` parameter in given URI is invalid",
+            ))))?;
         let mut info = KeyInfo::new(Vec::new());
         mem::swap(&mut info.secret, &mut self.secret);
         mem::swap(&mut info.issuer, &mut self.issuer);
