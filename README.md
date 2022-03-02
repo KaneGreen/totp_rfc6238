@@ -65,14 +65,14 @@ The codes of this crate has not been audited.
 ## Features that may be related to but NOT implemented in this crate
 * Read or write QR codes.
 
-## Contribution
-1. Any contribution intentionally submitted for inclusion in openssl-src by
-  you, as defined in the Apache-2.0 license, shall be dual licensed as
-  above, without any additional terms or conditions.
-2. Pull requests are always welcome.
-
 ## License
 This tool is primarily distributed under the terms of both the MIT license
 and the Apache License (Version 2.0), with portions covered by various
 BSD-like licenses.  
 See [LICENSE-APACHE](LICENSE-APACHE), [LICENSE-MIT](LICENSE-MIT) for details.
+
+### Contribution
+1. Any contribution intentionally submitted for inclusion in totp_rfc6238 by
+  you, as defined in the Apache-2.0 license, shall be dual licensed as above,
+  without any additional terms or conditions.
+2. Pull requests are always welcome.
