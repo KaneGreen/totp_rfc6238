@@ -482,8 +482,8 @@ impl TotpUri {
         // uri.set_host(Some("totp")).unwrap();
         let path = format!(
             "{}:{}",
-            utf8_percent_encode(&self.issuer, CHARS_NEED_ESCAPE).to_string(),
-            utf8_percent_encode(&self.account, CHARS_NEED_ESCAPE).to_string(),
+            utf8_percent_encode(&self.issuer, CHARS_NEED_ESCAPE),
+            utf8_percent_encode(&self.account, CHARS_NEED_ESCAPE),
         );
         uri.set_path(&path);
 

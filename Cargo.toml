@@ -1,8 +1,8 @@
 [package]
 name = "totp_rfc6238"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["KaneGreen <737445366KG@Gmail.com>"]
-edition = "2018"
+edition = "2021"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/KaneGreen/totp_rfc6238"
 documentation = "https://docs.rs/totp_rfc6238"
@@ -23,8 +23,8 @@ default = []
 oathuri = [ "data-encoding", "percent-encoding", "url", "zeroize" ]
 
 [dependencies]
-ring = '^0.16.20'
-data-encoding = { version = "^2.3.2", optional = true }
-percent-encoding = { version = "^2.1.0", optional = true }
-url = { version = "^2.2.2", optional = true }
-zeroize = { version = "^1.4.1", optional = true }
+ring = '0.16.20'
+data-encoding = { version = "2.3.2", optional = true }
+percent-encoding = { version = "2.2.0", optional = true }
+url = { version = "2.3.1", optional = true }
+zeroize = { version = "1.5.7", optional = true }
