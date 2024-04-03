@@ -22,7 +22,7 @@ use std::iter::FromIterator;
 /// assert_eq!(a, b);
 /// assert_eq!(a, c);
 /// ```
-#[derive(PartialEq, Eq, Clone, Copy, Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum HashAlgorithm {
     SHA1,
     SHA256,
@@ -52,7 +52,7 @@ impl HashAlgorithm {
 
 /// The counter as a time factor for TOTP defined in [RFC 6238 Section 4].
 ///
-/// Arguments:  
+/// Arguments:
 /// In this function, 64-bit unsigned integer (u64) is used to store the Unix
 /// timestamp.
 /// * `current`: Unix timestamp of the current time.
@@ -120,7 +120,7 @@ pub(crate) fn time_based_counter_number(current: u64, t0: u64, step: u64) -> u64
 /// # Note
 /// It would be better thar the size of the key is the same as the output
 /// length of the hash function, based on the recommendation in
-/// [RFC 2104 Section 3](https://tools.ietf.org/html/rfc2104#section-3).  
+/// [RFC 2104 Section 3](https://tools.ietf.org/html/rfc2104#section-3).
 /// However, shorter or longer keys are allowed. For more information on
 /// handling such keys, please refer to the
 /// [document of `ring::hmac::Key::new`](https://docs.rs/ring/latest/ring/hmac/struct.Key.html#method.new).
