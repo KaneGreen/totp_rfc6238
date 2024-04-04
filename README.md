@@ -52,6 +52,9 @@ See [here](./CHANGELOG.md).
 The version number lower than `1.0.0` should be regarded as an unstable version
 of the API. Therefore, some version updates may contain incompatible API
 changes. Please refer to the following when changing the dependent version.
+* v0.5.2 (unreleased) -> v0.5.3: `oath_uri::TotpUri` and `oath_uri::KeyInfo`
+implemented the `Debug` trait in version 0.5.2, but this was removed in 0.5.3.
+(only affects the `oathuri` feature)
 * v0.4.2 -> v0.5.0: The data types of errors has changed. (only affects the
 `oathuri` feature)
 * v0.3.1 -> v0.4.0: The data types of errors and function names has changed.
