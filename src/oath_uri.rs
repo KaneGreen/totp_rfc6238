@@ -261,6 +261,7 @@ pub fn key_to_base32_lowercase<T: AsRef<[u8]> + Zeroize>(key: T) -> String {
 ///     &[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110_u8,]
 /// )
 /// ```
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct KeyInfo {
     pub issuer: String,
     pub account: String,
@@ -287,6 +288,7 @@ impl KeyInfo {
     }
 }
 /// This struct provides reading and writing TOTP URIs.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TotpUri {
     issuer: String,
     account: String,
