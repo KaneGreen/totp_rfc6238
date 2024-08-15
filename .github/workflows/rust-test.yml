@@ -45,7 +45,13 @@ jobs:
         rustup update --no-self-update
 
     - name: Build
-      run: cargo build --verbose --all-features
+      run: |
+        cargo build --verbose --features oathuri
+        cargo clean
+        cargo build --verbose --no-default-features --features ring --features oathuri
 
     - name: Run tests
-      run: cargo test --verbose --all-features
+      run: |
+        cargo test --verbose --features oathuri
+        cargo clean
+        cargo test --verbose --no-default-features --features ring --features oathuri
