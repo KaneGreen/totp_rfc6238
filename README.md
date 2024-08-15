@@ -8,14 +8,14 @@ A rust crate for generating TOTP codes (tokens) defined in [RFC 6238](https://to
 ## Features of this crate
 * Both low-level and high-level APIs are provided.
 * The length of the codes, the initial counter time (T0), update time interval
-(period) and hash algorithm are configurable.
-* HMAC algorithms are implemented by [ring](https://crates.io/crates/ring).
+  (period) and hash algorithm are configurable.
+* HMAC algorithms are implemented by [RustCrypto](https://github.com/RustCrypto) or [ring](https://crates.io/crates/ring).
 * Read or write "[Key Uri Format](https://github.com/google/google-authenticator/wiki/Key-Uri-Format)"
-(URIs start with `otpauth://totp/`) (the `oathuri` feature gate).
+  (URIs start with `otpauth://totp/`) (the `oathuri` feature gate).
 * Read or write `key` from base32-encoded string (the `oathuri` feature gate).
 
 ### Select SHA implementation
-* using [RustCrypto](https://github.com/RustCrypto/MACs/tree/master/hmac)'s implementation (default)
+* using [RustCrypto](https://github.com/RustCrypto/hashes)'s implementation (default)
     ```toml
     [dependencies]
     totp_rfc6238 = "0.6"
@@ -38,7 +38,7 @@ fn main() {
     // 30 seconds, starting at "Jan 01 1970 00:00:00 UTC", using HMAC-SHA1.
     let mut totp_generator = TotpGenerator::new().build();
 
-    // Assuming you read the key from some secure area
+    // Assuming you have read the key from somewhere secure
     let key = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890+/";
 
     let output1 = totp_generator.get_code(key);
@@ -70,6 +70,7 @@ fn main() {
 
 ## Changelog
 See [here](./CHANGELOG.md).
+
 ### Incompatible API breaking changes
 The version number lower than `1.0.0` should be regarded as an unstable version
 of the API. Therefore, some version updates may contain incompatible API
@@ -89,6 +90,7 @@ The codes of this crate has not been audited.
 
 ## Features that may be related to but NOT implemented in this crate
 * Read or write QR codes.
+* HMAC-based One-Time Password (HOTP) algorithm as defined in RFC 4226.
 
 ## License
 This tool is primarily distributed under the terms of both the MIT license

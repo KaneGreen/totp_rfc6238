@@ -1,4 +1,6 @@
 # Changelog
+## v0.6.1
+* Improved the documentation. No actual code changes.
 ## v0.6.0
 * Using RustCrypto's SHA implementation by default, instead of Ring.
 * Improved the documentation.
