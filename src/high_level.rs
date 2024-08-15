@@ -159,20 +159,20 @@ impl TotpBuilder {
 /// # Why this struct doesn't store the keys?
 /// * The `key` is the **secret credential** of TOTP.
 /// * For some reasons, programmers may consider keeping [TotpGenerator]
-/// instances in memory for a period of time.
+///   nstances in memory for a period of time.
 /// * However, the keys should not be kept in memory for a long time if they do
-/// not need to be used during this time. Especially for those devices with a
-/// certain secure storage area, storing the keys in the memory for a long time
-/// weakens the security system.
+///   not need to be used during this time. Especially for those devices with a
+///   certain secure storage area, storing the keys in the memory for a long time
+///   weakens the security system.
 /// * Therefore, we recommend: the `key` is only loaded into memory when needed.
-/// And, when the operation is done, use some reliable method to overwrite the
-/// memory area corresponding to `key`. (For example, the crate
-/// [zeroize](https://crates.io/crates/zeroize) might be helpful for this)
+///   And, when the operation is done, use some reliable method to overwrite the
+///   memory area corresponding to `key`. (For example, the crate
+///   [zeroize](https://crates.io/crates/zeroize) might be helpful for this)
 /// * The details of security can be very complicated, and we can't include all
-/// of them here. If you are interested, you can check the relevant information
-/// yourself. If you have better suggestions, please don't hesitate to discuss
-/// on [GitHub](https://github.com/KaneGreen/totp_rfc6238) [Issues](https://github.com/KaneGreen/totp_rfc6238/issues)
-/// or start a [Pull Request](https://github.com/KaneGreen/totp_rfc6238/pulls).
+///   of them here. If you are interested, you can check the relevant information
+///   yourself. If you have better suggestions, please don't hesitate to discuss
+///   on [GitHub](https://github.com/KaneGreen/totp_rfc6238) [Issues](https://github.com/KaneGreen/totp_rfc6238/issues)
+///   or start a [Pull Request](https://github.com/KaneGreen/totp_rfc6238/pulls).
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub struct TotpGenerator {
     current: Option<u64>,

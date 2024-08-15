@@ -1,7 +1,7 @@
 //! Low-level APIs for TOTP code generation.
 //!
 //! Don't use these APIs directly unless you know exactly what you are doing.
-use ring::hmac;
+
 use std::convert::TryInto;
 use std::iter::FromIterator;
 
@@ -57,14 +57,14 @@ impl HashAlgorithm {
 /// timestamp.
 /// * `current`: Unix timestamp of the current time.
 /// * `t0`: Unix timestamp of the initial counter time T0 (default value in
-/// [RFC 6238 Section 4] is `0`).
+///   [RFC 6238 Section 4] is `0`).
 /// * `step`: The time step in seconds (default value in [RFC 6238 Section 4]
-/// is `30`).
+///   is `30`).
 ///
 /// Return:
 /// * an array of 8 bytes contains the counter value, which represents the
-/// number of time steps between the initial counter time T0 and the current
-/// Unix time.
+///   number of time steps between the initial counter time T0 and the current
+///   Unix time.
 ///
 /// # Panics
 /// Panics if `current` is less than `t0` or `step` is zero.
@@ -88,6 +88,7 @@ pub(crate) fn time_based_counter_number(current: u64, t0: u64, step: u64) -> u64
     assert!(current >= t0);
     (current - t0) / step
 }
+
 /// Compute the HMAC bytes for given bytes.
 ///
 /// Arguments:
@@ -97,7 +98,7 @@ pub(crate) fn time_based_counter_number(current: u64, t0: u64, step: u64) -> u64
 ///
 /// Return:
 /// * a [collection](https://doc.rust-lang.org/stable/std/iter/trait.Iterator.html#method.collect)
-/// of HMAC bytes transformed from an iterator.
+///   of HMAC bytes transformed from an iterator.
 ///
 /// # Example
 /// ```
@@ -124,7 +125,9 @@ pub(crate) fn time_based_counter_number(current: u64, t0: u64, step: u64) -> u64
 /// However, shorter or longer keys are allowed. For more information on
 /// handling such keys, please refer to the
 /// [document of `ring::hmac::Key::new`](https://docs.rs/ring/latest/ring/hmac/struct.Key.html#method.new).
+#[cfg(feature = "ring")]
 pub fn hmac_sha<T: FromIterator<u8>>(msg: &[u8], key: &[u8], hash_type: HashAlgorithm) -> T {
+    use ring::hmac;
     let hasher = match hash_type {
         HashAlgorithm::SHA1 => hmac::HMAC_SHA1_FOR_LEGACY_USE_ONLY,
         HashAlgorithm::SHA256 => hmac::HMAC_SHA256,
@@ -135,6 +138,71 @@ pub fn hmac_sha<T: FromIterator<u8>>(msg: &[u8], key: &[u8], hash_type: HashAlgo
     s_ctx.update(msg.as_ref());
     let tag = s_ctx.sign();
     tag.as_ref().iter().cloned().collect()
+}
+
+/// Compute the HMAC bytes for given bytes.
+///
+/// Arguments:
+/// * `msg`: bytes of the message.
+/// * `key`: bytes of the key.
+/// * `hash_type`: specify the hash function using the [`HashAlgorithm`] enum.
+///
+/// Return:
+/// * a [collection](https://doc.rust-lang.org/stable/std/iter/trait.Iterator.html#method.collect)
+///   of HMAC bytes transformed from an iterator.
+///
+/// # Example
+/// ```
+/// use totp_rfc6238::{low_level::hmac_sha, HashAlgorithm};
+/// // these test vectors come form https://tools.ietf.org/html/rfc4231.html#section-4.2
+/// let expected = &[
+///     0xb0, 0x34, 0x4c, 0x61, 0xd8, 0xdb, 0x38, 0x53, 0x5c, 0xa8,
+///     0xaf, 0xce, 0xaf, 0x0b, 0xf1, 0x2b, 0x88, 0x1d, 0xc2, 0x00,
+///     0xc9, 0x83, 0x3d, 0xa7, 0x26, 0xe9, 0x37, 0x6c, 0x2e, 0x32,
+///     0xcf, 0xf7_u8,
+/// ];
+///
+/// let m = b"Hi There";
+/// let k = &[0x0b_u8; 20];
+/// let output: Vec<_> = hmac_sha(m, k, HashAlgorithm::SHA256);
+///
+/// assert_eq!(&output[..], expected)
+/// ```
+///
+/// # Note
+/// It would be better thar the size of the key is the same as the output
+/// length of the hash function, based on the recommendation in
+/// [RFC 2104 Section 3](https://tools.ietf.org/html/rfc2104#section-3).
+/// However, shorter or longer keys are allowed. For more information on
+/// handling such keys, please refer to the
+/// [document of `ring::hmac::Key::new`](https://docs.rs/ring/latest/ring/hmac/struct.Key.html#method.new).
+#[cfg(feature = "rustcrypto")]
+pub fn hmac_sha<T: FromIterator<u8>>(msg: &[u8], key: &[u8], hash_type: HashAlgorithm) -> T {
+    use hmac::{Hmac, Mac};
+    use sha1::Sha1;
+    use sha2::{Sha256, Sha512};
+    match hash_type {
+        HashAlgorithm::SHA1 => {
+            let mut mac = Hmac::<Sha1>::new_from_slice(key).expect("HMAC can take key of any size");
+            mac.update(msg);
+            let result = mac.finalize();
+            result.into_bytes().iter().cloned().collect()
+        }
+        HashAlgorithm::SHA256 => {
+            let mut mac =
+                Hmac::<Sha256>::new_from_slice(key).expect("HMAC can take key of any size");
+            mac.update(msg);
+            let result = mac.finalize();
+            result.into_bytes().iter().cloned().collect()
+        }
+        HashAlgorithm::SHA512 => {
+            let mut mac =
+                Hmac::<Sha512>::new_from_slice(key).expect("HMAC can take key of any size");
+            mac.update(msg);
+            let result = mac.finalize();
+            result.into_bytes().iter().cloned().collect()
+        }
+    }
 }
 /// The `Truncate` function (internal step): extract 31 bits from the HMAC
 /// bytes and truncate the the lowest decimal digits.

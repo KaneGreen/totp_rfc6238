@@ -14,6 +14,18 @@ A rust crate for generating TOTP codes (tokens) defined in [RFC 6238](https://to
 (URIs start with `otpauth://totp/`) (the `oathuri` feature gate).
 * Read or write `key` from base32-encoded string (the `oathuri` feature gate).
 
+### Select SHA implementation
+* using [RustCrypto](https://github.com/RustCrypto/MACs/tree/master/hmac)'s implementation (default)
+    ```toml
+    [dependencies]
+    totp_rfc6238 = "0.6"
+    ```
+* using [Ring](https://github.com/briansmith/ring)'s implementation
+    ```toml
+    [dependencies]
+    totp_rfc6238 = { version = "0.6", default-features = false, features = ["ring"] }
+    ```
+
 ### Note
 This implementation does **NOT** consider the time earlier than the
 [Unix epoch (`1970-01-01T00:00:00Z`)](https://en.wikipedia.org/wiki/Unix_time).
@@ -22,27 +34,37 @@ This implementation does **NOT** consider the time earlier than the
 ```rust
 use totp_rfc6238::{HashAlgorithm, TotpGenerator};
 fn main() {
+    // Create a standard TOTP code generator: 6-digit, updating every
+    // 30 seconds, starting at "Jan 01 1970 00:00:00 UTC", using HMAC-SHA1.
+    let mut totp_generator = TotpGenerator::new().build();
+
+    // Assuming you read the key from some secure area
     let key = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890+/";
-    // Create a non-standard TOTP code generator: 8-digit, updating every 60
-    // seconds, starting at "Jan 01 1970 00:16:40 UTC", using HMAC-SHA512.
-    let mut totp_generator = TotpGenerator::new()
-        .set_digit(8).unwrap()
-        .set_step(60).unwrap()
-        .set_t0(1000)
-        .set_hash_algorithm(HashAlgorithm::SHA512)
-        .build();
-    
+
     let output1 = totp_generator.get_code(key);
     println!("Your TOTP code for current time is: {}", output1);
-    
+
     let output2 = totp_generator.get_next_update_time().unwrap();
     println!("Next update will be at the unix timestamp of {}", output2);
-    
-    let output3 = totp_generator.get_code_window(key, -5..=5).unwrap();
-    println!("Codes for 5 minutes earlier or later are:");
+
+    let output3 = totp_generator.get_code_window(key, -4..=4).unwrap();
+    println!("Codes for 2 minutes earlier or later are:");
     for i in output3 {
         println!("  {}", i);
     }
+
+    // You can also create a non-standard TOTP code generator: 8-digit,
+    // updating every 90 seconds, starting at "Jan 01 1970 00:16:42 UTC",
+    // using HMAC-SHA512.
+    let mut another_totp_generator = TotpGenerator::new()
+        .set_digit(8).unwrap()
+        .set_step(90).unwrap()
+        .set_t0(16 * 60 + 42)
+        .set_hash_algorithm(HashAlgorithm::SHA512)
+        .build();
+
+    let output4 = another_totp_generator.get_code(key);
+    println!("Your non-standard TOTP code for current time is: {}", output4);
 }
 ```
 
