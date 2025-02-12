@@ -9,12 +9,12 @@ updates:
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
-        interval: 'monthly'
+      interval: 'monthly'
     open-pull-requests-limit: 5
 
   # Maintain dependencies for Cargo
   - package-ecosystem: 'cargo'
     directory: '/'
     schedule:
-        interval: 'monthly'
+      interval: 'monthly'
     open-pull-requests-limit: 5
