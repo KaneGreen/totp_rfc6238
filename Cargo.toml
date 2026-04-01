@@ -28,7 +28,7 @@ rustcrypto = [ "dep:hmac", "dep:sha1", "dep:sha2" ]
 ring = { version = "0.17.8", optional = true }
 hmac = { version = "0.12.1", optional = true }
 sha1 = { version = "0.10.6", optional = true }
-sha2 = { version = "0.10.8", optional = true }
+sha2 = { version = "0.11.0", optional = true }
 data-encoding = { version = "2.6.0", optional = true }
 percent-encoding = { version = "2.3.1", optional = true }
 url = { version = "2.5.2", optional = true }
