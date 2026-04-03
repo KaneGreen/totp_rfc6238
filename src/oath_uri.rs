@@ -26,8 +26,8 @@
 
 use crate::high_level::{TotpBuilder, TotpGenerator};
 use crate::low_level::HashAlgorithm;
-use data_encoding::{DecodeError, BASE32_NOPAD};
-use percent_encoding::{percent_decode_str, utf8_percent_encode, AsciiSet, CONTROLS};
+use data_encoding::{BASE32_NOPAD, DecodeError};
+use percent_encoding::{AsciiSet, CONTROLS, percent_decode_str, utf8_percent_encode};
 use std::collections::HashMap;
 use std::error;
 use std::fmt::{self, Display};
@@ -346,7 +346,7 @@ impl TotpUri {
                     None,
                     "type",
                     "No OTP type in given URI",
-                )))
+                )));
             }
         }
 
@@ -363,7 +363,7 @@ impl TotpUri {
                     None,
                     "secret",
                     "No `secret` parameter in given URI",
-                )))
+                )));
             }
         };
 
@@ -385,7 +385,7 @@ impl TotpUri {
                         Some(x.to_string()),
                         "algorithm",
                         "Only SHA-1, SHA-256, SHA-512 are supported",
-                    )))
+                    )));
                 }
             },
             None => HashAlgorithm::SHA1,
@@ -431,7 +431,7 @@ impl TotpUri {
                     None,
                     "issuer",
                     "No `issuer` parameter in given URI",
-                )))
+                )));
             }
         }
 

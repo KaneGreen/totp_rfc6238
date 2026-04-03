@@ -178,7 +178,7 @@ pub fn hmac_sha<T: FromIterator<u8>>(msg: &[u8], key: &[u8], hash_type: HashAlgo
 /// [document of `ring::hmac::Key::new`](https://docs.rs/ring/latest/ring/hmac/struct.Key.html#method.new).
 #[cfg(feature = "rustcrypto")]
 pub fn hmac_sha<T: FromIterator<u8>>(msg: &[u8], key: &[u8], hash_type: HashAlgorithm) -> T {
-    use hmac::{Hmac, Mac};
+    use hmac::{Hmac, KeyInit, Mac};
     use sha1::Sha1;
     use sha2::{Sha256, Sha512};
     match hash_type {

@@ -1,6 +1,6 @@
 //! High-level APIs for TOTP code generation.
 use crate::low_level::{
-    hmac_sha, time_based_counter_bytes, time_based_counter_number, truncate, HashAlgorithm,
+    HashAlgorithm, hmac_sha, time_based_counter_bytes, time_based_counter_number, truncate,
 };
 use std::time::{SystemTime, UNIX_EPOCH};
 /// Builder for create an instance of [TotpGenerator]
