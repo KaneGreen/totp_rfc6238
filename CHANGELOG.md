@@ -1,4 +1,7 @@
 # Changelog
+## v0.7.0
+* Update dependencies.
+* Make `zeroize` available for RustCrypto's SHA and HMAC implementation.
 ## v0.6.1
 * Improved the documentation. No actual code changes.
 ## v0.6.0
